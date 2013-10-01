@@ -1,9 +1,10 @@
 #!/bin/bash
-# snapback.sh 1.3
+# snapback.sh 1.4
 # Simple script to create regular snapshot-based backups for Citrix Xenserver
 # Mark Round, scripts@markround.com
 # http://www.markround.com/snapback
 #
+# 1.4 : Added SR Variable Custom Fields
 # 1.3 : Added basic lockfile
 # 1.2 : Tidied output, removed VDIs before deleting snapshots and templates
 # 1.1 : Added missing force=true paramaters to snapshot uninstall calls.
@@ -25,8 +26,6 @@ WEEKLY_ON="Sun"
 MONTHLY_ON="Sun"
 # Temporary file
 TEMP=/tmp/snapback.$$
-# UUID of the destination SR for backups
-DEST_SR=e871f2df-a195-9c50-5377-be55e749c003
 
 LOCKFILE=/tmp/snapback.lock
 
@@ -108,6 +107,7 @@ for VM in $RUNNING_VMS; do
 	echo "= Retrieving backup paramaters ="
 	SCHEDULE=$(xe vm-param-get uuid=$VM param-name=other-config param-key=XenCenter.CustomFields.backup)	
 	RETAIN=$(xe vm-param-get uuid=$VM param-name=other-config param-key=XenCenter.CustomFields.retain)	
+	SR=$(xe vm-param-get uuid=$VM param-name=other-config param-key=XenCenter.CustomFields.sr)
 	# Not using this yet, as there are some bugs to be worked out...
 	# QUIESCE=$(xe vm-param-get uuid=$VM param-name=other-config param-key=XenCenter.CustomFields.quiesce)	
 
@@ -170,7 +170,7 @@ for VM in $RUNNING_VMS; do
 		echo "Found a stale temporary template, removing UUID $TEMPLATE_TEMP"
 		delete_template $TEMPLATE_TEMP
 	fi
-	TEMPLATE_UUID=$(xe snapshot-copy uuid=$SNAPSHOT_UUID sr-uuid=$DEST_SR new-name-description="Snapshot created on $(date)" new-name-label="$VM_NAME-$TEMP_SUFFIX")
+	TEMPLATE_UUID=$(xe snapshot-copy uuid=$SNAPSHOT_UUID sr-uuid=$SR new-name-description="Snapshot created on $(date)" new-name-label="$VM_NAME-$TEMP_SUFFIX")
 	echo "Done."
 
 	echo "= Removing temporary snapshot backup ="
@@ -205,8 +205,8 @@ for VM in $RUNNING_VMS; do
 	echo " "
 done
 
-xe vdi-list sr-uuid=$DEST_SR > /var/run/sr-mount/$DEST_SR/mapping.txt
-xe vbd-list > /var/run/sr-mount/$DEST_SR/vbd-mapping.txt
+xe vdi-list sr-uuid=$SR > /var/run/sr-mount/$SR/mapping.txt
+xe vbd-list > /var/run/sr-mount/$SR/vbd-mapping.txt
 
 echo "=== Snapshot backup finished at $(date) ==="
 rm $TEMP

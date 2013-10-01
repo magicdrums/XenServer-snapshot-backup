@@ -2,6 +2,9 @@ Xenserver snapshot and template based backup script
 https://github.com/markround/XenServer-snapshot-backup
 Mark Round, github@markround.com
 
+FORK : MagicDrums
+https://github.com/magicdrums/XenServer-snapshot-backup
+
 This README was copied from the text at http://www.markround.com/snapback
 
 Please visit this page for the full HTML version of the README, along with
@@ -70,11 +73,7 @@ Next, create a cron entry for the script - to make it run daily just after
 
 2 1 * * * root /usr/local/bin/snapback.sh > /var/log/snapback.log 2>&1
 
-This will also record a log of it's actions to /var/log/snapback.log. You
-now need to edit the script and change the DEST_SR variable to the UUID
-of your backup storage repository. You can find this value by clicking
-on the SR in Xencenter; the UUID will be displayed as a value like
-"2c01dc26-f525-70d6-dedf-00baaec76645".
+This will also record a log of it's actions to /var/log/snapback.log.
 
 Lastly, you need to configure your backup and retention policy for your VMs. In
 Xencenter, right click your VM, and select "Properties". Click on "Custom
@@ -90,6 +89,7 @@ retain : How many previous backups (in addition to the currently running
 backup) to keep. So, setting this to a value of "2" would mean that after
 a backup has run, you would end up with 3 backups in total.
 
+sr : Space where you keep the back to get the ID in the master run "xe sr-list"
 
 The script will look for these fields when it is run, and will skip any VM
 that doesn't have them set. You can also see them in the Xencenter summary
